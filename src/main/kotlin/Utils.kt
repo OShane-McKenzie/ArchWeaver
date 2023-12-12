@@ -38,7 +38,7 @@ fun getCurrentDateTime(): String {
     return currentDateTime.format(formatter)
 }
 fun pacLog(timeStamp:String=getCurrentDateTime(),
-           operation:String="",
+          operation:String="",
            outcome:String="",
            exitCode:String="",
            message:String="")
