@@ -1,4 +1,10 @@
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -19,7 +25,15 @@ class Pacman {
     val globalExitCode = mutableStateOf(0)
     private val localOutput  = mutableStateOf("")
 
-    private fun run(command: String): Pair<String, Int> {
+    fun pacExec(scope:CoroutineScope,run: ()->Unit){
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                run()
+            }
+        }
+    }
+
+    private fun run(command: String, recordOutput:Boolean = true): Pair<String, Int> {
         val process = ProcessBuilder(command.split("\\s".toRegex()))
             .redirectErrorStream(true)
             .start()
@@ -34,7 +48,10 @@ class Pacman {
             }
 
             val exitCode = process.waitFor()
-
+            if(recordOutput) {
+                globalOutput.value += output.toString()
+                globalExitCode.value = exitCode
+            }
             Pair(output.toString(), exitCode)
         } catch (e: Exception) {
             Pair("An error occurred: ${e.message}", -1)
@@ -47,84 +64,66 @@ class Pacman {
 
     fun install(pkg: String): Int {
         val result = run("$installPackage $pkg")
-        globalOutput.value += result.first
-        globalExitCode.value = result.second
         return result.second
     }
 
     fun uninstall(pkg: String): Int {
         val result = run("$uninstallPackage $pkg")
-        globalOutput.value += result.first
-        globalExitCode.value = result.second
         return result.second
     }
 
     fun uninstallWithDependencies(pkg: String): Int {
         val result = run("$uninstallPackageWithDependencies $pkg")
-        globalOutput.value += result.first
-        globalExitCode.value = result.second
         return result.second
     }
 
     private fun listDbPackages(): Pair<String, Int> {
-        val result = run(listAllDbPackages)
+        val result = run(listAllDbPackages,recordOutput = false)
         localOutput.value += result.first
-        globalExitCode.value = result.second
         return result
     }
 
     private fun listInstalledPackages(): Pair<String, Int> {
-        val result = run(listAllInstalledPackages)
+        val result = run(listAllInstalledPackages,recordOutput = false)
         localOutput.value = result.first
-        globalExitCode.value = result.second
         return result
     }
 
     fun cleanCache(): Int {
         val result = run(cleanCache)
-        globalOutput.value += result.first
-        globalExitCode.value = result.second
         return result.second
     }
 
     fun cleanAllCaches(): Int {
         val result = run(cleanCacheAll)
-        globalOutput.value += result.first
-        globalExitCode.value = result.second
         return result.second
     }
 
     fun updateDb(): Int {
         val result = run(updateDb)
-        globalOutput.value += result.first
-        globalExitCode.value = result.second
         return result.second
     }
-    fun getAllDbPkg(): List<String>{
+    fun getAllDbPkg(task: (Int)->Unit={}): List<String>{
         val (pkgs,exitCode) = listDbPackages()
         var pkgList = emptyList<String>()
         if(exitCode==0){
             pkgList = pkgs.trim().split("\n")
-        }else{
-            globalExitCode.value = exitCode
-            globalOutput.value += pkgs
         }
+        task(exitCode)
         return pkgList
     }
 
-    fun getAllInstalledPkg(): List<String>{
+    fun getAllInstalledPkg(task: (Int)->Unit={}): List<String>{
         val (pkgs,exitCode) = listInstalledPackages()
         var pkgList = emptyList<String>()
         if(exitCode==0){
             pkgList = pkgs.trim().split("\n")
-        }else{
-            globalExitCode.value = exitCode
-            globalOutput.value += pkgs
         }
+        task(exitCode)
         return pkgList
     }
 
     fun getPkgInfo(pkg:String): Pair<String, Int> {
-        return run("$pkgInfo pkg")
+        return run("$pkgInfo $pkg")
     }
 }

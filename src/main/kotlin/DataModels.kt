@@ -1,3 +1,8 @@
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 
 data class PkgInfo(
     val repository: String,
@@ -22,6 +27,6 @@ data class PkgInfo(
 )
 
 data class UserPackages(
-    val pkgs:MutableList<String> = mutableListOf(),
-    val pkg:MutableMap<String,String> = mutableMapOf()
+    val pkgs: SnapshotStateList<String> = mutableStateListOf(),
+    val pkg: SnapshotStateMap<String, String> = mutableStateMapOf()
 )
