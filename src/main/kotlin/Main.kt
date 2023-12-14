@@ -8,16 +8,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 
-val db = Db()
 val pacman = Pacman()
+val db = Db()
 val dataRepository = DataRepository()
 @Composable
 @Preview
@@ -30,8 +25,14 @@ fun App() {
         Column(){
             Button(onClick = {
                 data = ""
-                pacman.pacExec(scope) {
-                    data = pacman.getAllDbPkg().toString()
+                val x = parsePkgInfo("roighwoiegow")
+                println(x)
+                pacman.exec(scope) {
+                    pacman.updateDb()
+                    data += pacman.globalOutput.value
+//                    db.icons.value.icons.values.forEach {
+//                        data+=it+"\n"
+//                    }
                 }
 
             }) {

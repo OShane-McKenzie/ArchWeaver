@@ -6,10 +6,11 @@ fun parsePkgInfo(input: String): PkgInfo {
     val properties = mutableMapOf<String, String>()
 
     for (line in lines) {
-        val (key, value) = line.split(":", limit = 2)
-        properties[key.trim()] = value.trim()
+        if(line.contains(":")) {
+            val (key, value) = line.split(":", limit = 2)
+            properties[key.trim()] = value.trim()
+        }
     }
-
     return PkgInfo(
         repository = properties["Repository"] ?: "",
         name = properties["Name"] ?: "",
@@ -30,6 +31,7 @@ fun parsePkgInfo(input: String): PkgInfo {
         buildDate = properties["Build Date"] ?: "",
         validatedBy = properties["Validated By"] ?: ""
     )
+
 }
 
 fun getCurrentDateTime(): String {
@@ -38,7 +40,7 @@ fun getCurrentDateTime(): String {
     return currentDateTime.format(formatter)
 }
 fun pacLog(timeStamp:String=getCurrentDateTime(),
-          operation:String="",
+           operation:String="",
            outcome:String="",
            exitCode:String="",
            message:String="")

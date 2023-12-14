@@ -1,28 +1,28 @@
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import com.google.gson.annotations.SerializedName
 
 data class PkgInfo(
-    val repository: String,
-    val name: String,
-    val version: String,
-    val description: String,
-    val architecture: String,
-    val url: String,
-    val licenses: String,
-    val groups: String,
-    val provides: String,
-    val dependsOn: String,
-    val optionalDeps: String,
-    val conflictsWith: String,
-    val replaces: String,
-    val downloadSize: String,
-    val installedSize: String,
-    val packager: String,
-    val buildDate: String,
-    val validatedBy: String,
+    var repository: String = "",
+    var name: String = "",
+    var version: String = "",
+    var description: String = "",
+    var architecture: String = "",
+    var url: String = "",
+    var licenses: String = "",
+    var groups: String = "",
+    var provides: String = "",
+    var dependsOn: String = "",
+    var optionalDeps: String = "",
+    var conflictsWith: String = "",
+    var replaces: String = "",
+    var downloadSize: String = "",
+    var installedSize: String = "",
+    var packager: String = "",
+    var buildDate: String = "",
+    var validatedBy: String = "",
     var image:String = ""
 )
 
@@ -30,3 +30,5 @@ data class UserPackages(
     val pkgs: SnapshotStateList<String> = mutableStateListOf(),
     val pkg: SnapshotStateMap<String, String> = mutableStateMapOf()
 )
+
+data class IconsUrl(@SerializedName("icons") val icons: SnapshotStateMap<String, String> = mutableStateMapOf())

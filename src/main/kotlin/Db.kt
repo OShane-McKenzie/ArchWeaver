@@ -7,4 +7,5 @@ class Db {
 
     val installedPackageInfoList = mutableStateListOf<PkgInfo>()
     val packageInfoList = mutableStateListOf<PkgInfo>()
+    val icons = mutableStateOf(IconsUrl())
 }

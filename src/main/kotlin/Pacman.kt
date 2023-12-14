@@ -1,6 +1,4 @@
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -9,23 +7,21 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class Pacman {
-    private val listAllDbPackages: String = "pacman -Slq"
-    private val listAllInstalledPackages: String = "pacman -Qet"
-    private val installPackage: String = "pacman -S"
-    private val uninstallPackage: String = "pacman -R"
-    private val uninstallPackageWithDependencies: String = "sudo pacman -Rs"
-    private val updateDb: String = "pacman -Sy"
-    private val cleanCache: String = "pacman -Sc"
-    private val cleanCacheAll: String = "pacman -Scc"
-    private val pkgInfo: String = "pacman -Si"
+    private val listAllDbPackages: List<String> = listOf("pacman", "-Slq")
+    private val listAllInstalledPackages: List<String> = listOf("pacman", "-Qet")
+    private val installPackage: List<String> = listOf("pkexec", "pacman", "-S")
+    private val uninstallPackage: List<String> = listOf("pkexec", "pacman", "-R")
+    private val uninstallPackageWithDependencies: List<String> = listOf("pkexec", "pacman", "-Rs")
+    private val updateDb: List<String> = listOf("pkexec", "pacman", "-Sy")
+    private val cleanCache: List<String> = listOf("pkexec", "pacman", "-Sc")
+    private val cleanCacheAll: List<String> = listOf("pkexec", "pacman", "-Scc")
+    private val pkgInfo: List<String> = listOf("pacman", "-Si")
 
-    private val home: String = System.getProperty("user.home")
-    val config:String = "$home/.config/ArchWeaverCompose"
     val globalOutput = mutableStateOf("")
     val globalExitCode = mutableStateOf(0)
     private val localOutput  = mutableStateOf("")
 
-    fun pacExec(scope:CoroutineScope,run: ()->Unit){
+    fun exec(scope:CoroutineScope, run: ()->Unit){
         scope.launch {
             withContext(Dispatchers.IO) {
                 run()
@@ -33,8 +29,8 @@ class Pacman {
         }
     }
 
-    private fun run(command: String, recordOutput:Boolean = true): Pair<String, Int> {
-        val process = ProcessBuilder(command.split("\\s".toRegex()))
+    private fun run(command: List<String>, recordOutput: Boolean = true): Pair<String, Int> {
+        val process = ProcessBuilder(command)
             .redirectErrorStream(true)
             .start()
 
@@ -63,17 +59,28 @@ class Pacman {
 
 
     fun install(pkg: String): Int {
-        val result = run("$installPackage $pkg")
+        val cmd: MutableList<String> = mutableListOf()
+        cmd.addAll(installPackage)
+        cmd.add(pkg)
+        val result = run(cmd)
+
         return result.second
     }
 
     fun uninstall(pkg: String): Int {
-        val result = run("$uninstallPackage $pkg")
+        val cmd: MutableList<String> = mutableListOf()
+        cmd.addAll(uninstallPackage)
+        cmd.add(pkg)
+        val result = run(cmd)
         return result.second
     }
 
     fun uninstallWithDependencies(pkg: String): Int {
-        val result = run("$uninstallPackageWithDependencies $pkg")
+        val cmd: MutableList<String> = mutableListOf()
+        cmd.addAll(uninstallPackageWithDependencies)
+        cmd.add(pkg)
+        val result = run(cmd)
+
         return result.second
     }
 
@@ -123,7 +130,10 @@ class Pacman {
         return pkgList
     }
 
-    fun getPkgInfo(pkg:String): Pair<String, Int> {
-        return run("$pkgInfo $pkg")
+    fun getPkgInfo(pkg: String): Pair<String, Int> {
+        val cmd: MutableList<String> = mutableListOf()
+        cmd.addAll(pkgInfo)
+        cmd.add(pkg)
+        return run(cmd)
     }
 }
