@@ -34,6 +34,7 @@
         "kdenlive": "https://oshane-mckenzie.github.io/ArchWeaver/icons/kdenlive.png",
         "okular": "https://oshane-mckenzie.github.io/ArchWeaver/icons/okular.png",
         "docker": "https://oshane-mckenzie.github.io/ArchWeaver/icons/docker.png",
-        "vlc": "https://oshane-mckenzie.github.io/ArchWeaver/icons/vlc.png"
+        "vlc": "https://oshane-mckenzie.github.io/ArchWeaver/icons/vlc.png",
+        "coreutils": "https://oshane-mckenzie.github.io/ArchWeaver/icons/coreutils.png"
     }
 }

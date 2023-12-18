@@ -14,41 +14,13 @@ import androidx.compose.ui.window.application
 val pacman = Pacman()
 val db = Db()
 val dataRepository = DataRepository()
+val components = Components()
+val imageLoader = ImageLoader()
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Run!") }
-    val scope = rememberCoroutineScope()
-    var data by remember { mutableStateOf("") }
-
     MaterialTheme {
-        Column(){
-            Button(onClick = {
-                data = ""
-                val x = parsePkgInfo("roighwoiegow")
-                println(x)
-                pacman.exec(scope) {
-                    pacman.updateDb()
-                    data += pacman.globalOutput.value
-//                    db.icons.value.icons.values.forEach {
-//                        data+=it+"\n"
-//                    }
-                }
-
-            }) {
-                Text(text)
-            }
-            OutlinedTextField(
-                modifier = Modifier.wrapContentSize().onGloballyPositioned {
-
-                },
-                value = data,
-                onValueChange = {
-                    data = it
-                },
-                readOnly = true
-            )
-        }
+        components.packageCard("firefox")
     }
 }
 

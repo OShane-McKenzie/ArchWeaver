@@ -1,4 +1,5 @@
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 
 class Db {
@@ -8,4 +9,7 @@ class Db {
     val installedPackageInfoList = mutableStateListOf<PkgInfo>()
     val packageInfoList = mutableStateListOf<PkgInfo>()
     val icons = mutableStateOf(IconsUrl())
+
+    val pkgInfoMap = mutableStateMapOf<String,PkgInfo>()
+    val userPkgInfoMap = mutableStateMapOf<String,PkgInfo>()
 }

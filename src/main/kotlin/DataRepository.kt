@@ -9,22 +9,18 @@ class DataRepository {
     val userPkgsLoaded = mutableStateOf(false)
     init {
         loadIcons()
-        if(!pkgsLoaded.value) {
-            CoroutineScope(Dispatchers.IO).launch {
-                populatePkgList()
-            }
-        }
-        if(!userPkgsLoaded.value) {
-            CoroutineScope(Dispatchers.IO).launch {
-                populateUserPkgList()
-            }
-        }
-        CoroutineScope(Dispatchers.IO).launch {
-            updatePkgInfo()
-        }
         CoroutineScope(Dispatchers.IO).launch {
             updateUserPkgInfo()
         }
+        CoroutineScope(Dispatchers.IO).launch {
+            if(!userPkgsLoaded.value) {
+                populateUserPkgList()
+            }
+            if(!pkgsLoaded.value) {
+                populatePkgList()
+            }
+        }
+
     }
 
     private fun populatePkgList(): Int {
@@ -76,6 +72,7 @@ class DataRepository {
                     }
 
                     db.packageInfoList.add(pkgInfo)
+                    db.pkgInfoMap[pkgName] = pkgInfo
                 }
                 break
             }
@@ -96,6 +93,7 @@ class DataRepository {
                     }
 
                     db.installedPackageInfoList.add(pkgInfo)
+                    db.userPkgInfoMap[pkgName] = pkgInfo
 
                 }
                 break
