@@ -1,10 +1,12 @@
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.graphics.asAwtImage
 import androidx.compose.ui.layout.ContentScale
@@ -28,50 +30,23 @@ class Components {
             mutableStateOf(false)
         }
 
-
-        var getPkg by rememberSaveable(){
-            mutableStateOf(PkgInfo())
-        }
-
-        if(pkg in db.userPkgInfoMap){
-            getPkg = db.userPkgInfoMap[pkg]!!
-        }
-
         var bitmap by rememberSaveable{
             mutableStateOf(imageLoader.loadPlaceHolder())
         }
 
-
-        imageLoader.getAsyncImage(getPkg.image){
+        imageLoader.getAsyncImage(""){
             bitmap = it
             pkgReady = true
         }
 
+    }
 
-
-        Column(
-            modifier = Modifier.fillMaxSize(0.125f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+    @Composable
+    fun header(){
+        Row(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.07f).background(color = Color.Red)
         ){
-            if(pkgReady){
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize().weight(3f),
-                    contentScale = ContentScale.Fit
-                )
-                Text("$pkg Ready", modifier = Modifier.weight(1f))
-            }else{
-                Image(
-                    bitmap = imageLoader.loadPlaceHolder(),
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize().weight(3f),
-                    contentScale = ContentScale.Fit
-                )
-                Text("$pkg loading...")
-            }
-        }
 
+        }
     }
 }

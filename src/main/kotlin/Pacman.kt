@@ -120,14 +120,17 @@ class Pacman {
         return pkgList
     }
 
-    fun getAllInstalledPkg(task: (Int)->Unit={}): List<String>{
+    fun getAllInstalledPkgs(task: (Int,List<String>)->Unit={_,_->}){
         val (pkgs,exitCode) = listInstalledPackages()
         var pkgList = emptyList<String>()
         if(exitCode==0){
             pkgList = pkgs.trim().split("\n")
+            val packageNames = mutableListOf<String>()
+            pkgList.forEach {
+                packageNames.add(it.trim().split(" ")[0])
+            }
         }
-        task(exitCode)
-        return pkgList
+        task(exitCode, pkgList)
     }
 
     fun getPkgInfo(pkg: String): Pair<String, Int> {

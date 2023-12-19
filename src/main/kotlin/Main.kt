@@ -20,7 +20,7 @@ val imageLoader = ImageLoader()
 @Preview
 fun App() {
     MaterialTheme {
-        components.packageCard("firefox")
+        home()
     }
 }
 

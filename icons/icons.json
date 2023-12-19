@@ -35,6 +35,7 @@
         "okular": "https://oshane-mckenzie.github.io/ArchWeaver/icons/okular.png",
         "docker": "https://oshane-mckenzie.github.io/ArchWeaver/icons/docker.png",
         "vlc": "https://oshane-mckenzie.github.io/ArchWeaver/icons/vlc.png",
-        "coreutils": "https://oshane-mckenzie.github.io/ArchWeaver/icons/coreutils.png"
+        "coreutils": "https://oshane-mckenzie.github.io/ArchWeaver/icons/coreutils.png",
+        "arch_weaver_generic": "https://oshane-mckenzie.github.io/ArchWeaver/icons/gen_tux.png"
     }
 }

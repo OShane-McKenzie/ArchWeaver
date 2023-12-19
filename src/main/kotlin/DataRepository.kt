@@ -5,100 +5,58 @@ import java.io.File
 
 @Suppress("MemberVisibilityCanBePrivate")
 class DataRepository {
-    val pkgsLoaded = mutableStateOf(false)
-    val userPkgsLoaded = mutableStateOf(false)
     init {
         loadIcons()
-        CoroutineScope(Dispatchers.IO).launch {
-            updateUserPkgInfo()
-        }
-        CoroutineScope(Dispatchers.IO).launch {
-            if(!userPkgsLoaded.value) {
-                populateUserPkgList()
+        Api.getFeatured {
+            if(it != ""){
+                loadFeatured(it){
+                    CoroutineScope(Dispatchers.IO).launch {
+                        loadFeaturedPackageInfo{
+                            db.featuredPackagesReady.value = true
+                        }
+                    }
+                }
             }
-            if(!pkgsLoaded.value) {
-                populatePkgList()
-            }
         }
-
-    }
-
-    private fun populatePkgList(): Int {
-        var exitCode = -1
-        db.packageList.addAll(
-            pacman.getAllDbPkg {
-                exitCode = it
-            }
-        )
-        if(exitCode==0){
-            pkgsLoaded.value = true
-        }
-        return exitCode
-    }
-
-    private fun populateUserPkgList(): Int {
-        var exitCode = -1
-        db.installedPackageList.value = parseInstalledPkgs(
-            pacman.getAllInstalledPkg {
-                exitCode = it
-            }
-        )
-
-        if(exitCode==0){
-            userPkgsLoaded.value = true
-        }
-
-        return exitCode
     }
 
     private fun loadIcons(){
         val filePath = Path.icons
         val iconMap = File(filePath).readText()
-
         val gson = Gson()
         val icons = gson.fromJson(iconMap, IconsUrl::class.java)
         db.icons.value.icons.putAll(icons.icons)
     }
 
-    private suspend fun updatePkgInfo() {
-        while (true) {
-            if (pkgsLoaded.value) {
-                db.packageList.forEach { pkgName ->
-                    val pkgInfo = parsePkgInfo(pacman.getPkgInfo(pkgName.trim()).first)
-                    try {
-                        pkgInfo.image = db.icons.value.icons[pkgName] ?: ""
-                    } catch (e: Exception) {
-                        pacLog()
-                    }
 
-                    db.packageInfoList.add(pkgInfo)
-                    db.pkgInfoMap[pkgName] = pkgInfo
-                }
-                break
+    private fun loadFeatured(featuredList:String, callBack: ()->Unit={}){
+        val gson = Gson()
+        val featured = gson.fromJson(featuredList, FeaturedPackages::class.java)
+        db.featuredPackages.clear()
+        db.featuredPackages.addAll(featured.featured)
+        callBack()
+    }
+
+    fun parsePackageInfo(exactPackage:String, index:Int = 0){
+        val gson = Gson()
+        val result = gson.fromJson(exactPackage, SearchResult::class.java)
+        if(result.results.isNotEmpty()) {
+            if (result.results[index] !in db.packageInfoList) {
+                db.packageInfoList.add(result.results[index])
             }
-            delay(3000)
         }
     }
 
-    private suspend fun updateUserPkgInfo() {
-        while (true) {
-            if (userPkgsLoaded.value) {
-                db.installedPackageList.value.pkgs.forEach { pkgName ->
-
-                    val pkgInfo = parsePkgInfo(pacman.getPkgInfo(pkgName).first)
-                    try {
-                        pkgInfo.image = db.icons.value.icons[pkgName] ?: ""
-                    } catch (e: Exception) {
-                        pacLog()
-                    }
-
-                    db.installedPackageInfoList.add(pkgInfo)
-                    db.userPkgInfoMap[pkgName] = pkgInfo
-
+    suspend fun loadFeaturedPackageInfo(callBack: ()->Unit={}){
+        db.featuredPackages.forEach {
+            Api.getExactPackage(it){data->
+                if(data != ""){
+                    parsePackageInfo(data)
                 }
-                break
             }
-            delay(3000)
+            delay(1000)
         }
+        callBack()
     }
+
 }

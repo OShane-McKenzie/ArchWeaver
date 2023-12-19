@@ -4,28 +4,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import com.google.gson.annotations.SerializedName
 
-data class PkgInfo(
-    var repository: String = "",
-    var name: String = "",
-    var version: String = "",
-    var description: String = "",
-    var architecture: String = "",
-    var url: String = "",
-    var licenses: String = "",
-    var groups: String = "",
-    var provides: String = "",
-    var dependsOn: String = "",
-    var optionalDeps: String = "",
-    var conflictsWith: String = "",
-    var replaces: String = "",
-    var downloadSize: String = "",
-    var installedSize: String = "",
-    var packager: String = "",
-    var buildDate: String = "",
-    var validatedBy: String = "",
-    var image:String = "https://oshane-mckenzie.github.io/ArchWeaver/icons/firefox.png"
-)
-
 data class PackageInfo(
     @SerializedName("pkgname") @JvmField var packageName: String = "",
     @SerializedName("pkgbase") @JvmField var packageBase: String = "",
@@ -62,11 +40,6 @@ data class SearchResult(
     @SerializedName("results") @JvmField var results: List<PackageInfo> = listOf(),
     @SerializedName("num_pages") @JvmField var numPages: Int = 0,
     @SerializedName("page") @JvmField var page: Int = 0
-)
-
-data class UserPackages(
-    val pkgs: SnapshotStateList<String> = mutableStateListOf(),
-    val pkg: SnapshotStateMap<String, String> = mutableStateMapOf()
 )
 
 data class FeaturedPackages(
