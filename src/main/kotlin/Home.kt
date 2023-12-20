@@ -1,9 +1,11 @@
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun home(){
@@ -13,8 +15,18 @@ fun home(){
         verticalArrangement = Arrangement.Top
     ){
         components.header()
-//        when(db.featuredPackagesReady.value){
-//
-//        }
+        Spacer(modifier = Modifier.height(2.dp))
+        when(db.featuredPackagesReady.value){
+            true->{
+                components.appGrid()
+            }
+            else->{
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(2.dp))
+                Text("Loading Apps...", textAlign = TextAlign.Center)
+            }
+        }
+
+
     }
 }

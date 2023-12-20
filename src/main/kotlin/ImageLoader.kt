@@ -50,9 +50,9 @@ class ImageLoader {
         }
     }
 
-    fun loadPlaceHolder(path:String = "/gen_tux.png"): ImageBitmap {
+    fun loadPlaceHolder(path:String = "$Path.data/gen_tux.png"): ImageBitmap {
         // risk of crash
-        val file = File(Path.data + path)
+        val file = File(path)
 
         val inputStream = FileInputStream(file)
         val bufferedImage = ImageIO.read(inputStream)

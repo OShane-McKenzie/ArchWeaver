@@ -39,7 +39,7 @@ object Api {
     }
 
     fun getExactPackage(pkg: String, callback: (String) -> Unit={}){
-        fetcher(SEARCH_EXACT_NAME + pkg + SEARCH_REPOS + EXACT_NAME_SEARCH_LIMIT, delay = 1000){
+        fetcher(SEARCH_EXACT_NAME + pkg + SEARCH_REPOS + EXACT_NAME_SEARCH_LIMIT, delay = 20){
             callback(it)
         }
     }

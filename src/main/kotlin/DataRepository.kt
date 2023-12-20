@@ -68,7 +68,7 @@ class DataRepository {
                 }
             }
             // Prevent HTTP response code: 429
-            delay(1000)
+            delay(700)
         }
         callBack()
     }

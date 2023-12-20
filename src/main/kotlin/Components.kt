@@ -2,6 +2,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,11 +32,11 @@ class Components {
     @Suppress("FunctionName")
     @Composable
     fun WeaverImage(
-        modifier: Modifier,
+        modifier: Modifier = Modifier,
         url:String,
         placeHolder:String = Path.data + "/gen_tux.png",
         contentDescription:String = "",
-        contentScale: ContentScale = ContentScale.Crop
+        contentScale: ContentScale = ContentScale.Fit
         ){
         var imageReady by rememberSaveable(){
             mutableStateOf(false)
@@ -52,7 +56,7 @@ class Components {
                 bitmap = bitmap,
                 contentDescription = contentDescription,
                 contentScale = contentScale,
-                modifier = modifier
+                modifier = modifier.fillMaxHeight().fillMaxWidth()
             )
         }
         when(imageReady){
@@ -66,22 +70,18 @@ class Components {
     }
 
     @Composable
-    fun packageCard(pkg:String){
-        val scope = rememberCoroutineScope()
+    fun packageCard(packageInfo:PackageInfo){
+        val image = db.icons.value.icons.getOrElse(packageInfo.packageName.trim()) { DefaultImage }
 
-        var pkgReady by rememberSaveable(){
-            mutableStateOf(false)
+        Column(
+            Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            WeaverImage(url = image)
+            Divider(modifier = Modifier.fillMaxWidth(0.13f).height(2.dp))
+            Text(packageInfo.packageName, textAlign = TextAlign.Center)
         }
-
-        var bitmap by rememberSaveable{
-            mutableStateOf(imageLoader.loadPlaceHolder())
-        }
-
-        imageLoader.getAsyncImage(""){
-            bitmap = it
-            pkgReady = true
-        }
-
     }
 
     @Composable
@@ -169,6 +169,22 @@ class Components {
 
             if(showSnack) {
                 SnackbarHost(hostState = snackbarHostState, modifier = Modifier.fillMaxHeight().fillMaxWidth(0.4f))
+            }
+        }
+    }
+
+    @Composable
+    fun appGrid(){
+        val sortedPackages = db.packageInfoList.sortedBy { it.packageName }
+        LazyVerticalGrid(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            columns = GridCells.Fixed(10),
+            contentPadding = PaddingValues(5.dp),
+            modifier = Modifier.fillMaxSize()
+        ){
+            items(sortedPackages) { it ->
+                packageCard(it)
             }
         }
     }
