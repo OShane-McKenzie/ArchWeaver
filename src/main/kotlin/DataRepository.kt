@@ -1,4 +1,5 @@
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import java.io.File
@@ -28,7 +29,6 @@ class DataRepository {
         db.icons.value.icons.putAll(icons.icons)
     }
 
-
     private fun loadFeatured(featuredList:String, callBack: ()->Unit={}){
         val gson = Gson()
         val featured = gson.fromJson(featuredList, FeaturedPackages::class.java)
@@ -37,14 +37,27 @@ class DataRepository {
         callBack()
     }
 
-    fun parsePackageInfo(exactPackage:String, index:Int = 0){
+    fun parsePackageInfo(exactPackage:String, store:Int = 0, callBack: () -> Unit = {}){
         val gson = Gson()
         val result = gson.fromJson(exactPackage, SearchResult::class.java)
-        if(result.results.isNotEmpty()) {
-            if (result.results[index] !in db.packageInfoList) {
-                db.packageInfoList.add(result.results[index])
+        result.results.filterNot { it in db.packageInfoList }
+            .forEach {
+                when(store){
+                    0->{
+                        db.packageInfoList.add(it)
+                    }
+                    1->{
+                        db.tempPackageInfoList.clear()
+                        db.tempPackageInfoList.add(it)
+
+                    }
+                    else->{
+                        db.packageInfoList.add(it)
+                    }
+                }
+
             }
-        }
+        callBack()
     }
 
     suspend fun loadFeaturedPackageInfo(callBack: ()->Unit={}){
@@ -54,9 +67,19 @@ class DataRepository {
                     parsePackageInfo(data)
                 }
             }
+            // Prevent HTTP response code: 429
             delay(1000)
         }
         callBack()
     }
 
+    fun search(keyword:String) {
+        Api.search(keyword){data->
+            if(data != ""){
+                parsePackageInfo(data, store = 1){
+                    db.searchComplete.value = true
+                }
+            }
+        }
+    }
 }

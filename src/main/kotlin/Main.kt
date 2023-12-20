@@ -8,14 +8,14 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
+import androidx.compose.ui.window.*
 
 val pacman = Pacman()
 val db = Db()
 val dataRepository = DataRepository()
 val components = Components()
 val imageLoader = ImageLoader()
+
 @Composable
 @Preview
 fun App() {
@@ -25,7 +25,9 @@ fun App() {
 }
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(onCloseRequest = ::exitApplication, state = WindowState(
+        placement = WindowPlacement.Maximized
+    ), title = AppName) {
         App()
     }
 }

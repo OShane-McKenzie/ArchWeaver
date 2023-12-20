@@ -27,12 +27,13 @@ object Api {
             } catch (e: Exception) {
                 pacLog()
                 e.printStackTrace()
+                delay(delay)
                 callback("")
             }
         }
     }
     fun search(pkg: String, callback: (String) -> Unit={}) {
-        fetcher(SEARCH_API + pkg + SEARCH_REPOS + SEARCH_LIMIT){
+        fetcher(SEARCH_API + pkg + SEARCH_REPOS + SEARCH_LIMIT, delay = 1000){
             callback(it)
         }
     }
