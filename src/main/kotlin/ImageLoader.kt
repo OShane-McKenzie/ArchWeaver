@@ -2,6 +2,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.text.Placeholder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,13 +19,15 @@ class ImageLoader {
     //private val imageCache: SnapshotStateMap<String, ImageBitmap?> = mutableStateMapOf()
     //private val imageUrl = url
 
-    fun getAsyncImage(url:String, task:(ImageBitmap)->Unit={}){
-        asyncLoadImage(url){
+    fun getAsyncImage(url:String, placeholder:String="$Path.data/gen_tux.png", task:(ImageBitmap)->Unit={}){
+        asyncLoadImage(url, placeholder = placeholder){
             task(it)
         }
     }
 
-    private fun asyncLoadImage(url:String, reload:Boolean = false, task:(ImageBitmap)->Unit={}) {
+    private fun asyncLoadImage(url:String, reload:Boolean = false,
+                               placeholder:String="$Path.data/gen_tux.png",
+                               task:(ImageBitmap)->Unit={}) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 if(url !in ImageCache.save.keys && !reload) {
@@ -46,6 +49,7 @@ class ImageLoader {
             } catch (e: Exception) {
                 println(e)
                 pacLog()
+                task(loadPlaceHolder(placeholder))
             }
         }
     }

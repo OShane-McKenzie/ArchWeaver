@@ -46,7 +46,7 @@ class Components {
             mutableStateOf(imageLoader.loadPlaceHolder(placeHolder))
         }
 
-        imageLoader.getAsyncImage(url){
+        imageLoader.getAsyncImage(url, placeholder = placeHolder){
             bitmap = it
             imageReady = true
         }
