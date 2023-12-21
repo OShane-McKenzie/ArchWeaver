@@ -255,7 +255,7 @@ class Components {
             },
             shape = RoundedCornerShape(40),
             placeholder = {
-                Text("Search")
+                Text("Search for more")
             },
             maxLines = 1,
             colors = TextFieldDefaults.outlinedTextFieldColors(

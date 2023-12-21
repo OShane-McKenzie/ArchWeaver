@@ -81,9 +81,8 @@ class DataRepository {
             }else{
                 val data = Utils.readFile(Path.packageInfoDir+"/$it.json")
                 if (data != "") {
-                    createPackageInfo(data)
+                    parsePackageInfo(data)
                 }
-                delay(700)
             }
         }
         callBack()

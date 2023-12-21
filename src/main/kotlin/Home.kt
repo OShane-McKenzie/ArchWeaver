@@ -19,7 +19,7 @@ fun home(){
 //        Color.Blue
 //    )
     val bgColors = listOf(
-        Color.Black,
+        Color(0xfff0abefa),
         Color(0XFFFE6F7FF),
         Color.Black
     )

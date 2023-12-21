@@ -36,6 +36,13 @@
         "docker": "https://oshane-mckenzie.github.io/ArchWeaver/icons/docker.png",
         "vlc": "https://oshane-mckenzie.github.io/ArchWeaver/icons/vlc.png",
         "coreutils": "https://oshane-mckenzie.github.io/ArchWeaver/icons/coreutils.png",
-        "arch_weaver_generic": "https://oshane-mckenzie.github.io/ArchWeaver/icons/gen_tux.png"
+        "arch_weaver_generic": "https://oshane-mckenzie.github.io/ArchWeaver/icons/gen_tux.png",
+        "audacity": "https://oshane-mckenzie.github.io/ArchWeaver/icons/audacity.png",
+        "deluge": "https://oshane-mckenzie.github.io/ArchWeaver/icons/deluge.png",
+        "flameshot": "https://oshane-mckenzie.github.io/ArchWeaver/icons/flameshot.png",
+        "lollypop": "https://oshane-mckenzie.github.io/ArchWeaver/icons/lollypop.png",
+        "shotcut": "https://oshane-mckenzie.github.io/ArchWeaver/icons/shotcut.png",
+        "timeshift": "https://oshane-mckenzie.github.io/ArchWeaver/icons/timeshift.png",
+        "lutris": "https://oshane-mckenzie.github.io/ArchWeaver/icons/lutris.png"
     }
 }

@@ -9,7 +9,7 @@ import java.io.InputStreamReader
 class Pacman {
     private val listAllDbPackages: List<String> = listOf("pacman", "-Slq")
     private val listAllInstalledPackages: List<String> = listOf("pacman", "-Qet")
-    private val installPackage: List<String> = listOf("pkexec", "pacman", "-S")
+    private val installPackage: List<String> = listOf("pkexec", "pacman", "-S", "--noconfirm")
     private val uninstallPackage: List<String> = listOf("pkexec", "pacman", "-R")
     private val uninstallPackageWithDependencies: List<String> = listOf("pkexec", "pacman", "-Rs")
     private val updateDb: List<String> = listOf("pkexec", "pacman", "-Sy")

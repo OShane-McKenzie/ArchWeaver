@@ -19,14 +19,14 @@ class ImageLoader {
     //private val imageCache: SnapshotStateMap<String, ImageBitmap?> = mutableStateMapOf()
     //private val imageUrl = url
 
-    fun getAsyncImage(url:String, placeholder:String="$Path.data/gen_tux.png", task:(ImageBitmap)->Unit={}){
+    fun getAsyncImage(url:String, placeholder:String="${Path.data}/gen_tux.png", task:(ImageBitmap)->Unit={}){
         asyncLoadImage(url, placeholder = placeholder){
             task(it)
         }
     }
 
     private fun asyncLoadImage(url:String, reload:Boolean = false,
-                               placeholder:String="$Path.data/gen_tux.png",
+                               placeholder:String="${Path.data}/gen_tux.png",
                                task:(ImageBitmap)->Unit={}) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -59,7 +59,7 @@ class ImageLoader {
         }
     }
 
-    fun loadPlaceHolder(path:String = "$Path.data/gen_tux.png"): ImageBitmap {
+    fun loadPlaceHolder(path:String = "${Path.data}/gen_tux.png"): ImageBitmap {
         // risk of crash
         val file = File(path)
 
