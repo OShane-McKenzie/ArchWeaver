@@ -6,6 +6,7 @@
         "xpdf",
         "gimp",
         "baka-mplayer",
+        "android-studio",
         "glances",
         "blender",
         "nautilus",
@@ -33,6 +34,13 @@
         "kdenlive",
         "okular",
         "docker",
-        "vlc"
+        "vlc",
+        "audacity",
+        "deluge",
+        "flameshot",
+        "lollypop",
+        "shotcut",
+        "timeshift",
+        "lutris"
     ]
 }
