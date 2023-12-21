@@ -50,8 +50,13 @@ object Api {
     }
 
     fun getFeatured(callback: (String) -> Unit={}) {
-        fetcher(ARCH_WEAVER_BASE + "featured.json"){
-            callback(it)
+        if(!Utils.isExist(Path.data+"/featured.json")) {
+            fetcher(ARCH_WEAVER_BASE + "featured.json") {
+                callback(it)
+            }
+        }else{
+            callback(Utils.readFile(Path.data+"/featured.json"))
+
         }
     }
 }

@@ -1,8 +1,5 @@
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -180,7 +177,10 @@ class Components {
             ).background(
                 color = Color.Blue,
                 shape = RoundedCornerShape(6),
-            ).height(100.dp).padding(2.dp),
+            ).height(100.dp).padding(2.dp)
+                .clickable {
+
+            },
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
@@ -283,8 +283,7 @@ class Components {
         )
     }
     @Composable
-    fun header(){
-        val snackbarHostState = remember { SnackbarHostState() }
+    fun header(task: (Boolean)->Unit = {}){
         Row(
             modifier = Modifier.fillMaxWidth()
                 .fillMaxHeight(0.1f)
@@ -306,42 +305,73 @@ class Components {
 
             Button(
                 onClick = {
-                    if(searchQuery.trim() == "") {
-                        showSnack = true
-                        CoroutineScope(Dispatchers.IO).launch {
-                            snackbarHostState.showSnackbar(
-                                message = "You must type something",
-                                actionLabel = "Hide",
-                                duration = SnackbarDuration.Short
-                            )
-                            delay(500)
-                            showSnack = false
-                        }
-                    }
+                    task(searchQuery.trim() == "")
                 }
             ){
                 Text("Submit")
             }
 
-            if(showSnack) {
-                SnackbarHost(hostState = snackbarHostState, modifier = Modifier.fillMaxHeight().fillMaxWidth(0.4f))
-            }
         }
     }
 
     @Composable
     fun appGrid(){
-        val sortedPackages = db.packageInfoList.sortedBy { it.packageName }
-        LazyVerticalGrid(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            columns = GridCells.Fixed(10),
-            contentPadding = PaddingValues(5.dp),
-            modifier = Modifier.fillMaxSize()
-        ){
-            items(sortedPackages) { it ->
-                packageCard(it)
-            }
+        LaunchedEffect(Unit){
+            //give main window time to load
+            delay(500)
+            db.showApps.value = true
         }
+        if(db.showApps.value) {
+            LazyVerticalGrid(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                columns = GridCells.Fixed(10),
+                contentPadding = PaddingValues(5.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(db.sortedPackages) { it ->
+                    packageCard(it)
+                }
+            }
+        }else{
+            Spacer(modifier = Modifier.height(2.dp))
+            Text("Loading Apps...", textAlign = TextAlign.Center)
+        }
+    }
+
+    @Composable
+    fun tag(text:String){
+        Row(
+            Modifier
+
+                .wrapContentWidth()
+                .wrapContentHeight()
+                .border(
+                    BorderStroke(width = 1.dp, color = Color(0xFFF7F7F8)),
+                    shape = RoundedCornerShape(50)
+                )
+                .background(
+                    color = Color(0x00000000).copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(50),
+                )
+                .padding(2.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text, color = Color.White, fontSize = 10.sp)
+        }
+    }
+
+    @Composable
+    fun packageDetailDialog(){
+        AlertDialog(
+            modifier = Modifier.fillMaxSize(0.4f),
+            onDismissRequest = {
+
+            },
+            confirmButton = {
+
+            }
+        )
     }
 }

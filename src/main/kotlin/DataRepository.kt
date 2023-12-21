@@ -8,11 +8,13 @@ import java.io.File
 class DataRepository {
     init {
         loadIcons()
-        Api.getFeatured {
-            if(it != ""){
-                loadFeatured(it){
+        Api.getFeatured { featured ->
+            if(featured != ""){
+                loadFeatured(featured){
                     CoroutineScope(Dispatchers.IO).launch {
                         loadFeaturedPackageInfo{
+                            db.sortedPackages.clear()
+                            db.sortedPackages.addAll(db.packageInfoList.sortedBy { it.packageName })
                             db.featuredPackagesReady.value = true
                         }
                     }
