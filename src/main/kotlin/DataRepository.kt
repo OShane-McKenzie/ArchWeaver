@@ -19,6 +19,7 @@ class DataRepository {
                 }
             }
         }
+        loadInstalledPackages()
     }
 
     private fun loadIcons(){
@@ -34,6 +35,7 @@ class DataRepository {
         val featured = gson.fromJson(featuredList, FeaturedPackages::class.java)
         db.featuredPackages.clear()
         db.featuredPackages.addAll(featured.featured)
+
         callBack()
     }
 
@@ -60,15 +62,29 @@ class DataRepository {
         callBack()
     }
 
+    fun createPackageInfo(data:String){
+        val gson = Gson()
+        val result = gson.fromJson(data, PackageInfo::class.java)
+        db.packageInfoList.add(result)
+    }
     suspend fun loadFeaturedPackageInfo(callBack: ()->Unit={}){
         db.featuredPackages.forEach {
-            Api.getExactPackage(it){data->
-                if(data != ""){
-                    parsePackageInfo(data)
+            if(!Utils.isExist(Path.packageInfoDir+"/$it.json")) {
+                Api.getExactPackage(it) { data ->
+                    if (data != "") {
+                        parsePackageInfo(data)
+                        Utils.writeFile(Path.packageInfoDir+"/$it.json", data, append = false)
+                    }
                 }
+                // Prevent HTTP response code: 429
+                delay(700)
+            }else{
+                val data = Utils.readFile(Path.packageInfoDir+"/$it.json")
+                if (data != "") {
+                    createPackageInfo(data)
+                }
+                delay(700)
             }
-            // Prevent HTTP response code: 429
-            delay(700)
         }
         callBack()
     }
@@ -78,6 +94,18 @@ class DataRepository {
             if(data != ""){
                 parsePackageInfo(data, store = 1){
                     db.searchComplete.value = true
+                }
+            }
+        }
+    }
+
+    fun loadInstalledPackages(){
+        CoroutineScope(Dispatchers.IO).launch {
+            pacman.getAllInstalledPkgs(){
+                    _, pkgs->
+                db.installedPackages.clear()
+                pkgs.forEach {
+                    db.installedPackages.add(it)
                 }
             }
         }

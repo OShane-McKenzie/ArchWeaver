@@ -21,6 +21,7 @@ class Pacman {
     val globalExitCode = mutableStateOf(0)
     private val localOutput  = mutableStateOf("")
 
+
     fun exec(scope:CoroutineScope, run: ()->Unit){
         scope.launch {
             withContext(Dispatchers.IO) {

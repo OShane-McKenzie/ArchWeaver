@@ -48,7 +48,12 @@ class ImageLoader {
                 }
             } catch (e: Exception) {
                 println(e)
-                pacLog()
+                Utils.pacLog(
+                    operation = "image_load: $url".replace(",",";"),
+                    outcome = "failed",
+                    exitCode = "none",
+                    message = "${e.message}".replace(",",";")
+                )
                 task(loadPlaceHolder(placeholder))
             }
         }

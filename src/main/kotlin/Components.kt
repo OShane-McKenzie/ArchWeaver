@@ -3,11 +3,15 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -17,12 +21,14 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.*
 
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,8 +37,97 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.*
 
 class Components {
+    @Suppress("FunctionName")
+    @Composable
+    fun WeaverOutlinedTextField(
+        value: String,
+        onValueChange: (String) -> Unit,
+        modifier: Modifier = Modifier,
+        enabled: Boolean = true,
+        readOnly: Boolean = false,
+        textStyle: TextStyle = LocalTextStyle.current,
+        label: @Composable (() -> Unit)? = null,
+        placeholder: @Composable (() -> Unit)? = null,
+        leadingIcon: @Composable (() -> Unit)? = null,
+        trailingIcon: @Composable (() -> Unit)? = null,
+        isError: Boolean = false,
+        visualTransformation: VisualTransformation = VisualTransformation.None,
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+        keyboardActions: KeyboardActions = KeyboardActions.Default,
+        singleLine: Boolean = false,
+        maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+        minLines: Int = 1,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+        shape: Shape = MaterialTheme.shapes.small,
+        colors: TextFieldColors = TextFieldDefaults.outlinedTextFieldColors()
+    ) {
+        // If color is not provided via the text style, use content color as a default
+        val textColor = textStyle.color.takeOrElse {
+            colors.textColor(enabled).value
+        }
+        val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
+
+        @OptIn(ExperimentalMaterialApi::class)
+        (BasicTextField(
+        value = value,
+        modifier = if (label != null) {
+            modifier
+                // Merge semantics at the beginning of the modifier chain to ensure padding is
+                // considered part of the text field.
+                .semantics(mergeDescendants = true) {}
+                .padding(top = 8.dp)
+        } else {
+            modifier
+        }
+            .background(colors.backgroundColor(enabled).value, shape)
+            .defaultMinSize(
+                minWidth = TextFieldDefaults.MinWidth,
+                minHeight = TextFieldDefaults.MinHeight
+            ),
+        onValueChange = onValueChange,
+        enabled = enabled,
+        readOnly = readOnly,
+        textStyle = mergedTextStyle,
+        cursorBrush = SolidColor(colors.cursorColor(isError).value),
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        interactionSource = interactionSource,
+        singleLine = singleLine,
+        maxLines = maxLines,
+        minLines = minLines,
+        decorationBox = @Composable { innerTextField ->
+            TextFieldDefaults.OutlinedTextFieldDecorationBox(
+                value = value,
+                visualTransformation = visualTransformation,
+                innerTextField = innerTextField,
+                placeholder = placeholder,
+                label = label,
+                leadingIcon = leadingIcon,
+                trailingIcon = trailingIcon,
+                singleLine = singleLine,
+                enabled = enabled,
+                isError = isError,
+                interactionSource = interactionSource,
+                colors = colors,
+                border = {
+                    TextFieldDefaults.BorderBox(
+                        enabled,
+                        isError,
+                        interactionSource,
+                        colors,
+                        shape
+                    )
+                },
+                contentPadding = PaddingValues(top = 8.dp, start = 8.dp)
+            )
+        }
+    ))
+    }
+
 
     @Suppress("FunctionName")
     @Composable
@@ -46,7 +141,6 @@ class Components {
         var imageReady by rememberSaveable(){
             mutableStateOf(false)
         }
-
         var bitmap by rememberSaveable{
             mutableStateOf(imageLoader.loadPlaceHolder(placeHolder))
         }
@@ -101,7 +195,7 @@ class Components {
                     shape = RoundedCornerShape(bottomEndPercent = 12, bottomStartPercent = 12)
                 )
             ){
-                WeaverImage(url = image, modifier = Modifier.fillMaxSize(0.8f))
+                WeaverImage(url = image, modifier = Modifier.fillMaxSize())
             }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -112,19 +206,37 @@ class Components {
                 ).border(
                     BorderStroke(width = 2.dp, color = Color.Blue),
                     shape = RoundedCornerShape(bottomEndPercent = 6, bottomStartPercent = 6)
-                ),
+                ).padding(2.dp),
                     ){
                 Divider(modifier = Modifier.fillMaxWidth(0.3f).height(2.dp))
-                Text(packageInfo.packageName,
-                    textAlign = TextAlign.Center,
+                Text(
+                    packageInfo.packageName.capitalizeFirstLetter(),
+                    textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 10.sp,
                     color = Color.White
                 )
+                Spacer(Modifier.height(2.dp))
+                Text(packageInfo.packageDescription,
+                    textAlign = TextAlign.Start,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 8.sp,
+                    color = Color.White
+                )
+                Spacer(Modifier.height(2.dp))
+                Text("Last updated: ${packageInfo.lastUpdate.split("T")[0]}",
+                    textAlign = TextAlign.Start,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 8.sp,
+                    color = Color.White
+                )
             }
         }
     }
+
 
     @Composable
     fun extendableSearchBox(callBack: (String)->Unit={}){
@@ -135,7 +247,7 @@ class Components {
         var value by rememberSaveable{
             mutableStateOf("")
         }
-        OutlinedTextField(
+        WeaverOutlinedTextField(
             value = value,
             onValueChange = {
                 value = it
@@ -157,7 +269,7 @@ class Components {
                 .animateContentSize()
                 .padding(0.dp)
                 .fillMaxWidth(widthFraction)
-                .fillMaxHeight()
+                .fillMaxHeight(0.6f)
                 .focusTarget()
                 .onFocusChanged { newFocusState ->
                     isFocused = newFocusState.isFocused
@@ -166,7 +278,8 @@ class Components {
                     }else{
                         0.11f
                     }
-                }
+                },
+
         )
     }
     @Composable

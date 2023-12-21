@@ -43,7 +43,5 @@ fun home(){
                 Text("Loading Apps...", textAlign = TextAlign.Center)
             }
         }
-
-
     }
 }

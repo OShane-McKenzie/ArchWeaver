@@ -25,7 +25,12 @@ object Api {
                 delay(delay)
                 callback(json)
             } catch (e: Exception) {
-                pacLog()
+                Utils.pacLog(
+                    operation = "fetching: $url".replace(",",";"),
+                    outcome = "failed",
+                    exitCode = "none",
+                    message = "${e.message}".replace(",",";")
+                )
                 e.printStackTrace()
                 delay(delay)
                 callback("")
