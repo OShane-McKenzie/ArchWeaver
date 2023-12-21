@@ -1,6 +1,8 @@
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,13 +17,16 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -56,7 +61,7 @@ class Components {
                 bitmap = bitmap,
                 contentDescription = contentDescription,
                 contentScale = contentScale,
-                modifier = modifier.fillMaxHeight().fillMaxWidth()
+                modifier = modifier
             )
         }
         when(imageReady){
@@ -71,16 +76,53 @@ class Components {
 
     @Composable
     fun packageCard(packageInfo:PackageInfo){
+
         val image = db.icons.value.icons.getOrElse(packageInfo.packageName.trim()) { DefaultImage }
 
         Column(
-            Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.1f),
-            verticalArrangement = Arrangement.Center,
+            Modifier.fillMaxSize().border(
+                BorderStroke(width = 2.dp, color = Color(0xFFF7F7F8)),
+                shape = RoundedCornerShape(6)
+            ).background(
+                color = Color.Blue,
+                shape = RoundedCornerShape(6),
+            ).height(100.dp).padding(2.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            WeaverImage(url = image)
-            Divider(modifier = Modifier.fillMaxWidth(0.13f).height(2.dp))
-            Text(packageInfo.packageName, textAlign = TextAlign.Center)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize().weight(1f).border(
+                    BorderStroke(width = 2.dp, color = Color.White),
+                    shape = RoundedCornerShape(bottomEndPercent = 12, bottomStartPercent = 12)
+                ).background(
+                    color = Color.White,
+                    shape = RoundedCornerShape(bottomEndPercent = 12, bottomStartPercent = 12)
+                )
+            ){
+                WeaverImage(url = image, modifier = Modifier.fillMaxSize(0.8f))
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top,
+                modifier = Modifier.fillMaxSize().weight(1f).background(
+                    color = Color.Blue,
+                    shape = RoundedCornerShape(bottomEndPercent = 6, bottomStartPercent = 6)
+                ).border(
+                    BorderStroke(width = 2.dp, color = Color.Blue),
+                    shape = RoundedCornerShape(bottomEndPercent = 6, bottomStartPercent = 6)
+                ),
+                    ){
+                Divider(modifier = Modifier.fillMaxWidth(0.3f).height(2.dp))
+                Text(packageInfo.packageName,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 10.sp,
+                    color = Color.White
+                )
+            }
         }
     }
 
@@ -105,10 +147,11 @@ class Components {
             },
             maxLines = 1,
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                textColor = Color.Black,
+                textColor = Color.Blue,
                 unfocusedBorderColor = Color.LightGray,
-                focusedBorderColor = Color.Black,
-                backgroundColor = Color(0xffffffff).copy(alpha = 0.6f)
+                focusedBorderColor = Color.White,
+                backgroundColor = Color(0xffffffff).copy(alpha = 0.6f),
+                placeholderColor = Color.Blue
             ),
             modifier = Modifier
                 .animateContentSize()
