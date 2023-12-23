@@ -31,9 +31,7 @@ fun home(){
         Color.Black
     )
     val snackbarHostState = remember { SnackbarHostState() }
-    var showSnack by rememberSaveable{
-        mutableStateOf(false)
-    }
+
     Box(
         Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -47,16 +45,18 @@ fun home(){
             verticalArrangement = Arrangement.Top
         ) {
             components.header() {
-                if (it) {
-                    showSnack = true
+                dataProvider.notice.value = it
+                if (dataProvider.notice.value) {
+                    dataProvider.snackMessage.value = "You must type something"
+                    dataProvider.showSnack.value = true
                     CoroutineScope(Dispatchers.IO).launch {
                         snackbarHostState.showSnackbar(
-                            message = "You must type something",
+                            message = dataProvider.snackMessage.value,
                             actionLabel = "Hide",
                             duration = SnackbarDuration.Short
                         )
                         delay(500)
-                        showSnack = false
+                        dataProvider.showSnack.value = false
                     }
                 }
             }
@@ -69,7 +69,7 @@ fun home(){
                     ) {
                         components.tag("Showing recommended apps.")
                         Text("")
-                        if (showSnack) {
+                        if (dataProvider.showSnack.value) {
                             SnackbarHost(
                                 hostState = snackbarHostState,
                                 modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight()

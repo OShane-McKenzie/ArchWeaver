@@ -25,7 +25,7 @@ object Api {
                 delay(delay)
                 callback(json)
             } catch (e: Exception) {
-                Utils.pacLog(
+                Utils.weaverLog(
                     operation = "fetching: $url".replace(",",";"),
                     outcome = "failed",
                     exitCode = "none",

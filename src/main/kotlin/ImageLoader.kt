@@ -2,7 +2,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.text.Placeholder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,7 +53,7 @@ class ImageLoader {
                     }
                 }
             } catch (e: Exception) {
-                Utils.pacLog(
+                Utils.weaverLog(
                     operation = "image_load: $url".replace(",",";"),
                     outcome = "failed",
                     exitCode = "none",

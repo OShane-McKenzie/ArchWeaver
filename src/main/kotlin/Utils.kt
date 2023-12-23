@@ -1,10 +1,6 @@
 import java.io.*
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 object Utils{
     fun getCurrentDateTime(): String {
@@ -13,7 +9,7 @@ object Utils{
         return currentDateTime.format(formatter)
     }
 
-    fun pacLog(
+    fun weaverLog(
         timeStamp: String = getCurrentDateTime(),
         operation: String = "",
         outcome: String = "",
@@ -21,7 +17,8 @@ object Utils{
         message: String = ""
     ) {
         val logHeader = "Timestamp,Operation,Outcome,ExitCode,Message\n"
-        val log = "$timeStamp,$operation,$outcome,$exitCode,$message\n"
+        val log = "$timeStamp,${operation.replace(",","").replace("\n", " ")},$outcome,$exitCode,${
+            message.replace(",","").replace("\n", " ")}\n"
         if(! isExist(Path.logFile)){
             writeFile(Path.logFile,logHeader, append = false)
         }
@@ -51,7 +48,7 @@ object Utils{
 
             println(filePath)
         } catch (e: Exception) {
-            pacLog(
+            weaverLog(
                 operation = "writing: $filePath".replace(",",";"),
                 outcome = "failed",
                 exitCode = "none",
@@ -68,7 +65,7 @@ object Utils{
         try {
             content = file.readText()
         } catch (e: Exception) {
-            pacLog(
+            weaverLog(
                 operation = "reading: $filePath".replace(",",";"),
                 outcome = "failed",
                 exitCode = "none",

@@ -392,12 +392,23 @@ class Components {
         var width by rememberSaveable {
             mutableStateOf(0f)
         }
+        var actionTaken by rememberSaveable {
+            mutableStateOf("")
+        }
+
+        var isInstalled by rememberSaveable{
+            mutableStateOf(dataRepository.isPackageInstalled(data.packageName.trim()))
+        }
+
+        var actionButtonText by rememberSaveable{
+            mutableStateOf("")
+        }
 
         val scrollState = rememberScrollState()
         @Composable
         fun actionButton(text:String, colors: ButtonColors, enabled: Boolean = true, onclick: ()->Unit = {}){
             Button(
-                modifier = Modifier.fillMaxWidth(0.2f),
+                modifier = Modifier.fillMaxWidth(0.25f),
                 onClick = {
                     onclick()
                 },
@@ -423,7 +434,6 @@ class Components {
                     }
                     withContext(Dispatchers.Main){
                         dependencies = deps
-
                     }
                 }
             }
@@ -438,7 +448,7 @@ class Components {
                 width = 0f
                 dataProvider.showPackageDetailDialog.value = false
             }
-                .background(color = Color(0x00000000).copy(alpha = 0.8f)),
+                .background(color = Color(0x00000000).copy(alpha = 0.5f)),
             contentAlignment = Alignment.Center
         ){
             Column(
@@ -482,20 +492,46 @@ class Components {
                             color = Color.Black,
                             fontSize = 10.sp
                         )
-                        if(!dataRepository.isPackageInstalled(data.packageName.trim())){
-                            actionButton(text = "Install", colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color.Green,
-                                contentColor = Color.White
-                            )){
-
+                        Row(Modifier.fillMaxWidth().wrapContentHeight(),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            if (!isInstalled) {
+                                actionButtonText = if(!dataProvider.globalTaskComplete.value){
+                                    "Installing"
+                                }else{
+                                    "Install"
+                                }
+                                actionButton(
+                                    text = actionButtonText, colors = ButtonDefaults.buttonColors(
+                                        backgroundColor = Color.Green,
+                                        contentColor = Color.White
+                                    ),
+                                    enabled = dataProvider.globalTaskComplete.value
+                                ) {
+                                    actionTaken = "install"
+                                }
+                            } else {
+                                actionButtonText = if(!dataProvider.globalTaskComplete.value){
+                                    "Removing"
+                                }else{
+                                    "Remove"
+                                }
+                                installedVersion =
+                                    " Installed version: ${dataRepository.getInstalledPackageVersion(data.packageName.trim())}"
+                                actionButton(
+                                    text = actionButtonText, colors = ButtonDefaults.buttonColors(
+                                        backgroundColor = Color.Red,
+                                        contentColor = Color.White
+                                    ),
+                                    enabled = dataProvider.globalTaskComplete.value
+                                ) {
+                                    actionTaken = "remove"
+                                }
                             }
-                        }else{
-                            installedVersion = " Installed version: ${ dataRepository.getInstalledPackageVersion(data.packageName.trim()) }"
-                            actionButton(text = "Remove", colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color.Red,
-                                contentColor = Color.White
-                            )){
-
+                            if(!dataProvider.globalTaskComplete.value){
+                                Spacer(Modifier.width(2.dp))
+                                CircularProgressIndicator()
                             }
                         }
                     }
@@ -569,8 +605,59 @@ class Components {
                     actionButton(text = "Apply", colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Green,
                         contentColor = Color.White
-                    )){
-
+                    ),
+                        enabled = actionTaken != ""
+                    ){
+                        dataProvider.globalTaskComplete.value = false
+                        when(actionTaken){
+                            "install"->{
+                                pacman.exec(scope){
+                                    val result = pacman.install(data.packageName)
+                                    if(result == 0){
+                                        dataRepository.loadInstalledPackages()
+                                        isInstalled = true
+                                        dataProvider.globalTaskComplete.value = true
+                                    }else{
+                                        isInstalled = false
+                                        dataProvider.globalTaskComplete.value = true
+                                        dataProvider.snackMessage.value = "Error installing package"
+                                        dataProvider.notice.value = true
+                                        dataProvider.showSnack.value = true
+                                    }
+                                    actionTaken = ""
+                                    Utils.weaverLog(
+                                        operation = "Install package: ${data.packageName}",
+                                        outcome = if(result != 0){ "failed" }else{ "succeeded" },
+                                        exitCode = "$result",
+                                        message = pacman.globalOutput.value
+                                    )
+                                }
+                            }
+                            "remove"->{
+                                pacman.exec(scope){
+                                    val result = pacman.uninstall(data.packageName)
+                                    if(result == 0){
+                                        dataRepository.loadInstalledPackages()
+                                        isInstalled = false
+                                        installedVersion = ""
+                                        dataProvider.globalTaskComplete.value = true
+                                    }else{
+                                        isInstalled = true
+                                        dataProvider.globalTaskComplete.value = true
+                                        dataProvider.snackMessage.value = "Error removing package"
+                                        dataProvider.notice.value = true
+                                        dataProvider.showSnack.value = true
+                                    }
+                                    actionTaken = ""
+                                    Utils.weaverLog(
+                                        operation = "Remove package: ${data.packageName}",
+                                        outcome = if(result != 0){ "failed" }else{ "succeeded" },
+                                        exitCode = "$result",
+                                        message = pacman.globalOutput.value
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
