@@ -6,6 +6,7 @@ import androidx.compose.ui.text.Placeholder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Image
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -19,8 +20,8 @@ class ImageLoader {
     //private val imageCache: SnapshotStateMap<String, ImageBitmap?> = mutableStateMapOf()
     //private val imageUrl = url
 
-    fun getAsyncImage(url:String, placeholder:String="${Path.data}/gen_tux.png", task:(ImageBitmap)->Unit={}){
-        asyncLoadImage(url, placeholder = placeholder){
+    fun getAsyncImage(url:String, placeholder:String="${Path.data}/gen_tux.png", reload: Boolean = false,task:(ImageBitmap)->Unit={}){
+        asyncLoadImage(url, placeholder = placeholder, reload = reload){
             task(it)
         }
     }
@@ -30,7 +31,7 @@ class ImageLoader {
                                task:(ImageBitmap)->Unit={}) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                if(url !in ImageCache.save.keys && !reload) {
+                if(reload || url !in ImageCache.save.keys) {
                     val connection = URL(url).openConnection() as HttpURLConnection
                     connection.connect()
 
@@ -41,20 +42,27 @@ class ImageLoader {
                     ImageIO.write(bufferedImage, "png", stream)
 
                     val byteArray = stream.toByteArray()
-                    ImageCache.save[url] = Image.makeFromEncoded(byteArray).toComposeImageBitmap()
-                    task(Image.makeFromEncoded(byteArray).toComposeImageBitmap())
+
+                    withContext(Dispatchers.Main) {
+                        ImageCache.save[url] = Image.makeFromEncoded(byteArray).toComposeImageBitmap()
+                        task(Image.makeFromEncoded(byteArray).toComposeImageBitmap())
+                    }
                 }else{
-                    task(ImageCache.save[url]!!)
+                    // prevent race conditions
+                    withContext(Dispatchers.Main) {
+                        task(ImageCache.save[url]!!)
+                    }
                 }
             } catch (e: Exception) {
-                println(e)
                 Utils.pacLog(
                     operation = "image_load: $url".replace(",",";"),
                     outcome = "failed",
                     exitCode = "none",
                     message = "${e.message}".replace(",",";")
                 )
-                task(loadPlaceHolder(placeholder))
+                withContext(Dispatchers.Main) {
+                    task(loadPlaceHolder(placeholder))
+                }
             }
         }
     }

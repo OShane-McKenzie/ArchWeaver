@@ -15,7 +15,4 @@ class Db {
 
     val sortedPackages:SnapshotStateList<PackageInfo> = mutableStateListOf()
 
-    val featuredPackagesReady = mutableStateOf(false)
-    val searchComplete = mutableStateOf(false)
-    val showApps = mutableStateOf(false)
 }

@@ -15,7 +15,7 @@ class DataRepository {
                         loadFeaturedPackageInfo{
                             db.sortedPackages.clear()
                             db.sortedPackages.addAll(db.packageInfoList.sortedBy { it.packageName })
-                            db.featuredPackagesReady.value = true
+                            dataProvider.featuredPackagesReady.value = true
                         }
                     }
                 }
@@ -94,7 +94,7 @@ class DataRepository {
         Api.search(keyword){data->
             if(data != ""){
                 parsePackageInfo(data, store = 1){
-                    db.searchComplete.value = true
+                    dataProvider.searchComplete.value = true
                 }
             }
         }
@@ -111,4 +111,28 @@ class DataRepository {
             }
         }
     }
+
+    //.split(" ", limit = 2)[0]
+    fun isPackageInstalled(pkg: String): Boolean {
+        var found = false
+        db.installedPackages.forEach { installedPackage ->
+            if (installedPackage.split(" ", limit = 2)[0] == pkg) {
+                found = true
+                return@forEach
+            }
+        }
+        return found
+    }
+
+    fun getInstalledPackageVersion(pkg: String): String {
+        var found = ""
+        db.installedPackages.forEach { installedPackage ->
+            if (installedPackage.split(" ", limit = 2)[0] == pkg) {
+                found = installedPackage.split(" ", limit = 2)[1]
+                return@forEach
+            }
+        }
+        return found
+    }
+
 }

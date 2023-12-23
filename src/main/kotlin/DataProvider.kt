@@ -4,4 +4,7 @@ class DataProvider {
     val featuredPackagesReady = mutableStateOf(false)
     val searchComplete = mutableStateOf(false)
     val showApps = mutableStateOf(false)
+    val showPackageDetailDialog = mutableStateOf(false)
+
+    val selectedPackage = mutableStateOf(PackageInfo())
 }

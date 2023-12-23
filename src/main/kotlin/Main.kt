@@ -15,7 +15,7 @@ val db = Db()
 val dataRepository = DataRepository()
 val components = Components()
 val imageLoader = ImageLoader()
-
+val dataProvider = DataProvider()
 @Composable
 @Preview
 fun App() {

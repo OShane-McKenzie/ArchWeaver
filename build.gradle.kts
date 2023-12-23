@@ -27,6 +27,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("media.kamel:kamel-image:0.9.0")
     api ("org.jetbrains.skija:skija-linux:0.93.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
     //implementation ("org.jetbrains.skia:skiko-jvm:0.1.0")
 
 //    implementation("io.ktor:ktor-client-apache5:1.7.3")

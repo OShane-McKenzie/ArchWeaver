@@ -34,49 +34,60 @@ fun home(){
     var showSnack by rememberSaveable{
         mutableStateOf(false)
     }
+    Box(
+        Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(
+                brush = Brush.verticalGradient(bgColors, startY = 0.0f, endY = 1000.0f),
+                shape = RoundedCornerShape(0),
+            ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            components.header() {
+                if (it) {
+                    showSnack = true
+                    CoroutineScope(Dispatchers.IO).launch {
+                        snackbarHostState.showSnackbar(
+                            message = "You must type something",
+                            actionLabel = "Hide",
+                            duration = SnackbarDuration.Short
+                        )
+                        delay(500)
+                        showSnack = false
+                    }
+                }
+            }
+            when (dataProvider.featuredPackagesReady.value) {
+                true -> {
+                    Row(
+                        Modifier.fillMaxWidth().fillMaxHeight(0.086f).padding(start = 5.dp, end = 5.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        components.tag("Showing recommended apps.")
+                        Text("")
+                        if (showSnack) {
+                            SnackbarHost(
+                                hostState = snackbarHostState,
+                                modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight()
+                            )
+                        }
+                    }
+                    components.appGrid()
+                }
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(
-            brush = Brush.verticalGradient(bgColors, startY = 0.0f, endY = 1000.0f),
-            shape = RoundedCornerShape(0),
-        ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ){
-        components.header(){
-            if(it) {
-                showSnack = true
-                CoroutineScope(Dispatchers.IO).launch {
-                    snackbarHostState.showSnackbar(
-                        message = "You must type something",
-                        actionLabel = "Hide",
-                        duration = SnackbarDuration.Short
-                    )
-                    delay(500)
-                    showSnack = false
+                else -> {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("Loading Apps...", textAlign = TextAlign.Center)
                 }
             }
         }
-        when(db.featuredPackagesReady.value){
-            true->{
-                Row(Modifier.fillMaxWidth().fillMaxHeight(0.086f).padding(start = 5.dp, end = 5.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically){
-                    components.tag("Showing recommended apps.")
-                    Text("")
-                    if(showSnack) {
-                        SnackbarHost(
-                            hostState = snackbarHostState,
-                            modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight())
-                    }
-                }
-                components.appGrid()
-            }
-            else->{
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(2.dp))
-                Text("Loading Apps...", textAlign = TextAlign.Center)
-            }
+        if (dataProvider.showPackageDetailDialog.value) {
+            components.packageDetailDialog(data = dataProvider.selectedPackage.value)
         }
     }
 }

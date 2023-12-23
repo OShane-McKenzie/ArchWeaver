@@ -13,6 +13,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusModifier
@@ -25,15 +26,16 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.*
 import java.util.*
 
 class Components {
@@ -132,6 +134,7 @@ class Components {
         modifier: Modifier = Modifier,
         url:String,
         placeHolder:String = Path.data + "/gen_tux.png",
+        reload: Boolean = false,
         contentDescription:String = "",
         contentScale: ContentScale = ContentScale.Fit
         ){
@@ -142,7 +145,7 @@ class Components {
             mutableStateOf(imageLoader.loadPlaceHolder(placeHolder))
         }
 
-        imageLoader.getAsyncImage(url, placeholder = placeHolder){
+        imageLoader.getAsyncImage(url, placeholder = placeHolder, reload = reload){
             bitmap = it
             imageReady = true
         }
@@ -168,6 +171,7 @@ class Components {
     @Composable
     fun packageCard(packageInfo:PackageInfo){
 
+        val scope = rememberCoroutineScope()
         val image = db.icons.value.icons.getOrElse(packageInfo.packageName.trim()) { DefaultImage }
 
         Column(
@@ -179,6 +183,12 @@ class Components {
                 shape = RoundedCornerShape(6),
             ).height(100.dp).padding(2.dp)
                 .clickable {
+                    scope.launch{
+                        dataProvider.showPackageDetailDialog.value = false
+                        delay(30)
+                        dataProvider.selectedPackage.value = packageInfo
+                        dataProvider.showPackageDetailDialog.value = true
+                    }
 
             },
             verticalArrangement = Arrangement.Top,
@@ -319,9 +329,9 @@ class Components {
         LaunchedEffect(Unit){
             //give main window time to load
             delay(500)
-            db.showApps.value = true
+            dataProvider.showApps.value = true
         }
-        if(db.showApps.value) {
+        if(dataProvider.showApps.value) {
             LazyVerticalGrid(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -362,16 +372,208 @@ class Components {
         }
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun packageDetailDialog(){
-        AlertDialog(
-            modifier = Modifier.fillMaxSize(0.4f),
-            onDismissRequest = {
+    fun packageDetailDialog(data:PackageInfo = PackageInfo()){
+        val image = db.icons.value.icons.getOrElse(data.packageName.trim()) { DefaultImage }
+        val scope = rememberCoroutineScope()
+        var dependencies by rememberSaveable{
+            mutableStateOf("")
+        }
+        var height by rememberSaveable {
+            mutableStateOf(0f)
+        }
 
-            },
-            confirmButton = {
+        var installedVersion by rememberSaveable {
+            mutableStateOf("")
+        }
 
+        val interactionSource = remember { MutableInteractionSource() }
+        var width by rememberSaveable {
+            mutableStateOf(0f)
+        }
+
+        val scrollState = rememberScrollState()
+        @Composable
+        fun actionButton(text:String, colors: ButtonColors, enabled: Boolean = true, onclick: ()->Unit = {}){
+            Button(
+                modifier = Modifier.fillMaxWidth(0.2f),
+                onClick = {
+                    onclick()
+                },
+                colors = colors,
+                enabled = enabled
+            ){
+                Text(text, textAlign = TextAlign.Left)
             }
-        )
+        }
+        LaunchedEffect(Unit){
+            height  = 0.8f
+            width = 0.7f
+
+            scope.launch {
+                withContext(Dispatchers.IO){
+                    var deps = ""
+                    data.dependencies.forEach {
+                        deps += if(data.dependencies.indexOf(it) == data.dependencies.lastIndex){
+                            it
+                        }else{
+                            "$it, "
+                        }
+                    }
+                    withContext(Dispatchers.Main){
+                        dependencies = deps
+
+                    }
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize().clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ){
+                height  = 0f
+                width = 0f
+                dataProvider.showPackageDetailDialog.value = false
+            }
+                .background(color = Color(0x00000000).copy(alpha = 0.8f)),
+            contentAlignment = Alignment.Center
+        ){
+            Column(
+                modifier = Modifier
+                    .animateContentSize()
+                    .fillMaxWidth(width)
+                    .fillMaxHeight(height)
+                    .background(color = Color(0xFFFFFFFF))
+                    .padding(5.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.2f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ){
+                    WeaverImage(url = image, reload = false, modifier = Modifier
+                        .fillMaxWidth(0.15f).fillMaxHeight()
+                        .border(width = 1.dp, color = Color.LightGray)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Column(
+                        Modifier.fillMaxHeight().wrapContentWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(data.packageName.capitalizeFirstLetter(), fontWeight = FontWeight.Bold, fontSize = 25.sp)
+                        Text("Last updated: ${data.lastUpdate.split("T")[0]}. Latest version: ${data.packageVersion}.$installedVersion",
+                            textAlign = TextAlign.Start,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = Color.Black
+                        )
+
+                        Text(
+                            "Size: %.2f MiB".format(data.installedSize/1000000f),
+                            textAlign = TextAlign.Start,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = Color.Black,
+                            fontSize = 10.sp
+                        )
+                        if(!dataRepository.isPackageInstalled(data.packageName.trim())){
+                            actionButton(text = "Install", colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Green,
+                                contentColor = Color.White
+                            )){
+
+                            }
+                        }else{
+                            installedVersion = " Installed version: ${ dataRepository.getInstalledPackageVersion(data.packageName.trim()) }"
+                            actionButton(text = "Remove", colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Red,
+                                contentColor = Color.White
+                            )){
+
+                            }
+                        }
+                    }
+                }
+                Column(
+                    Modifier.fillMaxWidth().fillMaxHeight(0.75f).verticalScroll(scrollState),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Text(data.packageDescription,
+                        textAlign = TextAlign.Start,
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black,
+                        fontStyle = FontStyle.Italic
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Source:",
+                        textAlign = TextAlign.Start,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(data.repo,
+                        textAlign = TextAlign.Start,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Packaged by:",
+                        textAlign = TextAlign.Start,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(data.packager,
+                        textAlign = TextAlign.Start,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Dependencies:",
+                        textAlign = TextAlign.Start,
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(dependencies,
+                        textAlign = TextAlign.Start,
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.Black
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    actionButton(text = "Cancel", colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Red,
+                        contentColor = Color.White
+                    )){
+                        dataProvider.showPackageDetailDialog.value = false
+                    }
+                    actionButton(text = "Apply", colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Green,
+                        contentColor = Color.White
+                    )){
+
+                    }
+                }
+            }
+        }
     }
 }
