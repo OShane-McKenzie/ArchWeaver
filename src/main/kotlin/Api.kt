@@ -9,7 +9,7 @@ import java.net.URL
 object Api {
 
     private const val SEARCH_API = "https://archlinux.org/packages/search/json/?q="
-    private const val SEARCH_LIMIT = "&limit=10"
+    private const val SEARCH_LIMIT = "&limit=50"
     private const val SEARCH_REPOS = "&repo=Core&repo=Extra&repo=Multilib"
     private const val ARCH_WEAVER_BASE = "https://oshane-mckenzie.github.io/ArchWeaver/"
 

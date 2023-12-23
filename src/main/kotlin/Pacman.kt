@@ -46,11 +46,24 @@ class Pacman {
 
             val exitCode = process.waitFor()
             if(recordOutput) {
-                globalOutput.value += output.toString()
-                globalExitCode.value = exitCode
+                CoroutineScope(Dispatchers.Main).launch {
+                    globalOutput.value += output.toString()
+                    globalExitCode.value = exitCode
+                }
+
             }
             Pair(output.toString(), exitCode)
         } catch (e: Exception) {
+            var cmd = ""
+            command.forEach {
+                cmd += "$it "
+            }
+            Utils.weaverLog(
+                operation = "Executing command: $cmd",
+                outcome = "failed",
+                exitCode = "none",
+                message = "${e.message}"
+            )
             Pair("An error occurred: ${e.message}", -1)
         } finally {
             reader.close()

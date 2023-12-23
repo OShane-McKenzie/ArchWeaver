@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -305,9 +306,7 @@ class Components {
             var searchQuery by rememberSaveable {
                 mutableStateOf("")
             }
-            var showSnack by rememberSaveable{
-                mutableStateOf(false)
-            }
+
             extendableSearchBox{
                 searchQuery = it
             }
@@ -316,9 +315,30 @@ class Components {
             Button(
                 onClick = {
                     task(searchQuery.trim() == "")
+                    if(searchQuery.trim()!="") {
+                        dataProvider.isSearching.value = true
+                        dataRepository.search(searchQuery.trim())
+                    }
                 }
             ){
                 Text("Submit")
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Button(
+                onClick = {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        dataProvider.featuredPackagesReady.value = false
+                        dataProvider.isSearching.value = false
+                        dataProvider.searchComplete.value = false
+                        delay(50)
+                        dataProvider.featuredPackagesReady.value = true
+
+                    }
+
+                },
+                enabled = dataProvider.isSearching.value
+            ){
+                Text("Home")
             }
 
         }
@@ -331,6 +351,13 @@ class Components {
             delay(500)
             dataProvider.showApps.value = true
         }
+        var items = SnapshotStateList<PackageInfo>()
+
+        items = if(dataProvider.isSearching.value){
+            db.tempPackageInfoList
+        }else{
+            db.sortedPackages
+        }
         if(dataProvider.showApps.value) {
             LazyVerticalGrid(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -339,7 +366,7 @@ class Components {
                 contentPadding = PaddingValues(5.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(db.sortedPackages) { it ->
+                items(items) { it ->
                     packageCard(it)
                 }
             }
@@ -438,6 +465,17 @@ class Components {
                 }
             }
         }
+        val snackbarHostState = remember { SnackbarHostState() }
+        if (dataProvider.showSnack.value) {
+            dataProvider.showSnack.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                snackbarHostState.showSnackbar(
+                    message = dataProvider.snackMessage.value,
+                    actionLabel = "Hide",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
 
         Box(
             modifier = Modifier.fillMaxSize().clickable(
@@ -459,7 +497,7 @@ class Components {
                     .background(color = Color(0xFFFFFFFF))
                     .padding(5.dp),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.Top
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight(0.2f),
@@ -497,7 +535,7 @@ class Components {
                             verticalAlignment = Alignment.CenterVertically
                         ){
                             if (!isInstalled) {
-                                actionButtonText = if(!dataProvider.globalTaskComplete.value){
+                                actionButtonText = if(!dataProvider.globalTaskComplete.value  && data.packageName in dataProvider.actionList){
                                     "Installing"
                                 }else{
                                     "Install"
@@ -512,7 +550,7 @@ class Components {
                                     actionTaken = "install"
                                 }
                             } else {
-                                actionButtonText = if(!dataProvider.globalTaskComplete.value){
+                                actionButtonText = if(!dataProvider.globalTaskComplete.value && data.packageName in dataProvider.actionList){
                                     "Removing"
                                 }else{
                                     "Remove"
@@ -533,9 +571,15 @@ class Components {
                                 Spacer(Modifier.width(2.dp))
                                 CircularProgressIndicator()
                             }
+
                         }
                     }
+
                 }
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight(0.125f).padding(0.dp)
+                )
                 Column(
                     Modifier.fillMaxWidth().fillMaxHeight(0.75f).verticalScroll(scrollState),
                     horizontalAlignment = Alignment.Start,
@@ -592,8 +636,8 @@ class Components {
                     )
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                    verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ){
                     actionButton(text = "Cancel", colors = ButtonDefaults.buttonColors(
@@ -609,46 +653,55 @@ class Components {
                         enabled = actionTaken != ""
                     ){
                         dataProvider.globalTaskComplete.value = false
+                        dataProvider.actionList.add(data.packageName)
                         when(actionTaken){
                             "install"->{
                                 pacman.exec(scope){
+                                    actionTaken = ""
                                     val result = pacman.install(data.packageName)
                                     if(result == 0){
-                                        dataRepository.loadInstalledPackages()
-                                        isInstalled = true
+                                        dataRepository.loadInstalledPackages{
+                                            installedVersion = ""
+                                        }
                                         dataProvider.globalTaskComplete.value = true
+                                        dataProvider.actionList.clear()
+                                        isInstalled = true
                                     }else{
-                                        isInstalled = false
+                                        dataProvider.actionList.clear()
                                         dataProvider.globalTaskComplete.value = true
                                         dataProvider.snackMessage.value = "Error installing package"
-                                        dataProvider.notice.value = true
                                         dataProvider.showSnack.value = true
+                                        isInstalled = false
                                     }
-                                    actionTaken = ""
+
                                     Utils.weaverLog(
                                         operation = "Install package: ${data.packageName}",
                                         outcome = if(result != 0){ "failed" }else{ "succeeded" },
                                         exitCode = "$result",
                                         message = pacman.globalOutput.value
                                     )
+
                                 }
                             }
                             "remove"->{
                                 pacman.exec(scope){
+                                    actionTaken = ""
                                     val result = pacman.uninstall(data.packageName)
                                     if(result == 0){
-                                        dataRepository.loadInstalledPackages()
-                                        isInstalled = false
-                                        installedVersion = ""
+                                        dataRepository.loadInstalledPackages {
+                                            installedVersion = ""
+                                        }
+                                        dataProvider.actionList.clear()
                                         dataProvider.globalTaskComplete.value = true
+                                        isInstalled = false
                                     }else{
-                                        isInstalled = true
+                                        dataProvider.actionList.clear()
                                         dataProvider.globalTaskComplete.value = true
                                         dataProvider.snackMessage.value = "Error removing package"
-                                        dataProvider.notice.value = true
                                         dataProvider.showSnack.value = true
+                                        isInstalled = true
                                     }
-                                    actionTaken = ""
+
                                     Utils.weaverLog(
                                         operation = "Remove package: ${data.packageName}",
                                         outcome = if(result != 0){ "failed" }else{ "succeeded" },

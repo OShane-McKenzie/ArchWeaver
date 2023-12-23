@@ -44,23 +44,22 @@ class DataRepository {
     fun parsePackageInfo(exactPackage:String, store:Int = 0, callBack: () -> Unit = {}){
         val gson = Gson()
         val result = gson.fromJson(exactPackage, SearchResult::class.java)
-        result.results.filterNot { it in db.packageInfoList }
-            .forEach {
-                when(store){
-                    0->{
+        when(store){
+            0->{
+                result.results.filterNot { it in db.packageInfoList }
+                    .forEach {
                         db.packageInfoList.add(it)
                     }
-                    1->{
-                        db.tempPackageInfoList.clear()
-                        db.tempPackageInfoList.add(it)
-
-                    }
-                    else->{
-                        db.packageInfoList.add(it)
-                    }
-                }
-
             }
+            1->{
+                db.tempPackageInfoList.clear()
+                result.results.filterNot { it in db.tempPackageInfoList }
+                    .forEach {
+                        db.tempPackageInfoList.add(it)
+                    }
+            }
+        }
+
         callBack()
     }
 
@@ -100,13 +99,16 @@ class DataRepository {
         }
     }
 
-    fun loadInstalledPackages(){
+    fun loadInstalledPackages(task:()->Unit = {}){
         CoroutineScope(Dispatchers.IO).launch {
             pacman.getAllInstalledPkgs(){
                     _, pkgs->
                 db.installedPackages.clear()
                 pkgs.forEach {
                     db.installedPackages.add(it)
+                }
+                CoroutineScope(Dispatchers.Main).launch {
+                    task()
                 }
             }
         }

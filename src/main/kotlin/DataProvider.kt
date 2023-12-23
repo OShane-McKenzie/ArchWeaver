@@ -11,4 +11,6 @@ class DataProvider {
     val globalTaskComplete = mutableStateOf(true)
     val notice = mutableStateOf(false)
     val snackMessage = mutableStateOf("")
+    val isSearching = mutableStateOf(false)
+    val actionList = mutableStateListOf("")
 }

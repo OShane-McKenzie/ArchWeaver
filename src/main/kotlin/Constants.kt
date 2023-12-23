@@ -2,7 +2,7 @@ import java.util.*
 import kotlin.io.encoding.Base64
 
 const val AppName = "ArchWeaver"
-const val DefaultImage = "arch_weaver_generic"
+const val DefaultImage = "https://oshane-mckenzie.github.io/ArchWeaver/icons/gen_tux.png"
 
 
 // LOl not suppose to be here

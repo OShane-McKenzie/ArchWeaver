@@ -60,29 +60,58 @@ fun home(){
                     }
                 }
             }
-            when (dataProvider.featuredPackagesReady.value) {
-                true -> {
-                    Row(
-                        Modifier.fillMaxWidth().fillMaxHeight(0.086f).padding(start = 5.dp, end = 5.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        components.tag("Showing recommended apps.")
-                        Text("")
-                        if (dataProvider.showSnack.value) {
-                            SnackbarHost(
-                                hostState = snackbarHostState,
-                                modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight()
-                            )
+            if(!dataProvider.isSearching.value) {
+                when (dataProvider.featuredPackagesReady.value) {
+                    true -> {
+                        Row(
+                            Modifier.fillMaxWidth().fillMaxHeight(0.086f).padding(start = 5.dp, end = 5.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            components.tag("Showing recommended apps.")
+                            Text("")
+                            if (dataProvider.showSnack.value) {
+                                SnackbarHost(
+                                    hostState = snackbarHostState,
+                                    modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight()
+                                )
+                            }
                         }
+                        components.appGrid()
                     }
-                    components.appGrid()
-                }
 
-                else -> {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Loading Apps...", textAlign = TextAlign.Center)
+                    else -> {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Loading Apps...", textAlign = TextAlign.Center)
+                    }
+                }
+            }else{
+                when (dataProvider.searchComplete.value) {
+                    true -> {
+                        Row(
+                            Modifier.fillMaxWidth().fillMaxHeight(0.086f).padding(start = 5.dp, end = 5.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            components.tag("Results.")
+                            Text("")
+                            if (dataProvider.showSnack.value) {
+                                SnackbarHost(
+                                    hostState = snackbarHostState,
+                                    modifier = Modifier.fillMaxWidth(0.3f).fillMaxHeight()
+                                )
+                            }
+                        }
+                        components.appGrid()
+                    }
+
+                    else -> {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Loading results...", textAlign = TextAlign.Center)
+                    }
                 }
             }
         }
