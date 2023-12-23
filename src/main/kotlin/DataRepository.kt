@@ -25,11 +25,11 @@ class DataRepository {
     }
 
     private fun loadIcons(){
-        val filePath = Path.icons
-        val iconMap = File(filePath).readText()
-        val gson = Gson()
-        val icons = gson.fromJson(iconMap, IconsUrl::class.java)
-        db.icons.value.icons.putAll(icons.icons)
+        Api.getIcons{
+            val gson = Gson()
+            val icons = gson.fromJson(it, IconsUrl::class.java)
+            db.icons.value.icons.putAll(icons.icons)
+        }
     }
 
     private fun loadFeatured(featuredList:String, callBack: ()->Unit={}){
@@ -37,7 +37,6 @@ class DataRepository {
         val featured = gson.fromJson(featuredList, FeaturedPackages::class.java)
         db.featuredPackages.clear()
         db.featuredPackages.addAll(featured.featured)
-
         callBack()
     }
 
@@ -136,5 +135,4 @@ class DataRepository {
         }
         return found
     }
-
 }

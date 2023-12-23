@@ -59,4 +59,15 @@ object Api {
 
         }
     }
+
+    fun getIcons(callback: (String) -> Unit={}){
+        if(!Utils.isExist(Path.icons)) {
+            fetcher(ARCH_WEAVER_BASE + "icons/icons.json") {
+                Utils.writeFile(Path.icons, it)
+                callback(it)
+            }
+        }else{
+            callback(Utils.readFile(Path.icons))
+        }
+    }
 }

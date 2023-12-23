@@ -433,9 +433,9 @@ class Components {
 
         val scrollState = rememberScrollState()
         @Composable
-        fun actionButton(text:String, colors: ButtonColors, enabled: Boolean = true, onclick: ()->Unit = {}){
+        fun actionButton(modifier: Modifier = Modifier, text:String, colors: ButtonColors, enabled: Boolean = true, onclick: ()->Unit = {}){
             Button(
-                modifier = Modifier.fillMaxWidth(0.25f),
+                modifier = modifier.fillMaxWidth(0.25f),
                 onClick = {
                     onclick()
                 },
@@ -551,9 +551,9 @@ class Components {
                                 }
                             } else {
                                 actionButtonText = if(!dataProvider.globalTaskComplete.value && data.packageName in dataProvider.actionList){
-                                    "Removing"
+                                    "Uninstalling"
                                 }else{
-                                    "Remove"
+                                    "Uninstall"
                                 }
                                 installedVersion =
                                     " Installed version: ${dataRepository.getInstalledPackageVersion(data.packageName.trim())}"
@@ -640,17 +640,21 @@ class Components {
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ){
-                    actionButton(text = "Cancel", colors = ButtonDefaults.buttonColors(
+                    actionButton(text = "Close", colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Red,
                         contentColor = Color.White
-                    )){
+                    ),
+                        modifier = Modifier.weight(1f)
+                    ){
                         dataProvider.showPackageDetailDialog.value = false
                     }
+                    Spacer(modifier = Modifier.fillMaxWidth().weight(1f))
                     actionButton(text = "Apply", colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Green,
                         contentColor = Color.White
                     ),
-                        enabled = actionTaken != ""
+                        enabled = actionTaken != "",
+                        modifier = Modifier.weight(1f)
                     ){
                         dataProvider.globalTaskComplete.value = false
                         dataProvider.actionList.add(data.packageName)
